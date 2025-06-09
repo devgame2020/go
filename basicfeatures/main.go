@@ -6,9 +6,13 @@ import (
 )
 
 func main() {
-	f4_01()
-	f4_10()
-	f4_99()
+	// f4_01()
+	// f4_10()
+	// f4_99()
+	// f4_102()
+	// f4_105()
+	// f4_106()
+	f4_107()
 }
 
 func f4_01() {
@@ -62,4 +66,62 @@ func f4_99() {
 	// var tax2 float32 = 27.50
 	// fmt.Println(price5 + tax2)
 
+}
+
+func f4_102() {
+	// 변수값 초기화 생략
+	var price float32
+	fmt.Println(price)
+	price = 275.00
+	fmt.Println(price)
+
+	// 한번에 여러변수정의
+	var price2, tax2 = 275.00, 27.50
+	fmt.Println(price2 + tax2)
+
+	// 짧은 변수 선언
+	price3 := 275.00
+	fmt.Println(price3)
+
+	price4, tax4, inStock4 := 275.00, 27.50, true
+	fmt.Println("Total:", price4+tax4)
+	fmt.Println("In Stock:", inStock4)
+}
+
+func f4_105() {
+	price, tax, inStock := 275.00, 27.50, true
+	fmt.Println("Total:", price+tax)
+	fmt.Println("In Stock:", inStock)
+
+	// 변수재정의
+	// 적어도 하나가 이미 존재하지 않고, 변수타입을 변경하지 않는다면 재정의허용
+	price2, tax := 200.0, 25.00
+	fmt.Println("Total 2:", price2+tax)
+}
+
+func f4_106() {
+	// 빈식별자 사용
+	// Go는 변수를 정의하고 사용하지 않으면 오류가 나온다.
+	price, tax, inStock, _ := 275.00, 27.50, true, true
+	var _ = "Alice"
+	fmt.Println("Total:", price+tax)
+	fmt.Println("In Stock:", inStock)
+}
+
+func f4_107() {
+	first := 100
+	second := first
+	first++
+	fmt.Println("First:", first)
+	fmt.Println("Second:", second)
+
+	first2 := 100
+	var second2 *int = &first
+	second3 := &first
+
+	first2++
+	fmt.Println("First2:", first2)
+	fmt.Println("Second2:", second2)
+	fmt.Println("Second2:", *second2)
+	fmt.Println("Second3:", *second3)
 }
