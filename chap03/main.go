@@ -3,8 +3,16 @@ package main
 import "fmt"
 
 func main() {
-	fmt.Println("Hello Go")
+	PrintHello()
 	for i := 0; i < 5; i++ {
-		fmt.Println(i)
+		PrintNumber(i)
 	}
+}
+
+func PrintHello() {
+	fmt.Println("Hello,Go")
+}
+
+func PrintNumber(number int) {
+	fmt.Println(number)
 }
