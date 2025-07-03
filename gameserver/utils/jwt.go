@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -10,7 +11,7 @@ import (
 )
 
 // jwtKey는 JWT 서명용 비밀키
-var jwtKey = []byte("your-secret-key")
+// var jwtKey = []byte("your-secret-key")
 
 // JWT Claims 구조
 type Claims struct {
@@ -34,7 +35,9 @@ type Claims struct {
 // GenerateToken 함수는 userID를 받아 JWT 토큰을 생성합니다.
 // 회원가입, 로그인시 호출된다.
 func GenerateToken(userName string) (string, error) {
+	var jwtKey = []byte(os.Getenv("JWT_SECRET"))
 	fmt.Println("==GenerateToken===")
+	fmt.Println(jwtKey)
 	fmt.Println(userName)
 	claims := &Claims{
 		UserName: userName,
@@ -51,6 +54,10 @@ func GenerateToken(userName string) (string, error) {
 
 // ParseToken 함수는 JWT 토큰 문자열을 받아서 유효성 검증 후 클레임을 반환합니다.
 func ParseToken(tokenStr string) (*Claims, error) {
+	var jwtKey = []byte(os.Getenv("JWT_SECRET"))
+	fmt.Println("parse token")
+	fmt.Println(jwtKey)
+
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		// 서명 방식 체크 (HS256인지 확인)
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
