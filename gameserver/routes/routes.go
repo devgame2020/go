@@ -8,6 +8,8 @@ import (
 )
 
 func RegisterRoutes(e *echo.Echo) {
+	e.Use(middleware.CustomLogger)
+
 	// 인증 필요없음
 	RegisterRouteInit(e)
 	RegisterRouteEtc(e)
