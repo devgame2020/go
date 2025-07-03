@@ -10,13 +10,15 @@ import (
 func RegisterRoutes(e *echo.Echo) {
 	// 인증 필요없음
 	RegisterRouteInit(e)
+	RegisterRouteEtc(e)
 
 	RegisterRouteUser(e)
+	RegisterRoutePlay(e)
 
-	game := e.Group("/game")
-	game.Use(middleware.AuthMiddleware)
-	game.POST("/roll", handlers.RollDice)           // 주사위 던지기
-	game.GET("/daily-reward", handlers.DailyReward) // 일일보상
+}
+
+func RegisterRouteEtc(e *echo.Echo) {
+	e.GET("/chk", handlers.CheckHandler)
 }
 
 func RegisterRouteInit(e *echo.Echo) {
@@ -36,18 +38,30 @@ func RegisterRouteUser(e *echo.Echo) {
 
 }
 
+func RegisterRoutePlay(e *echo.Echo) {
+	game := e.Group("/game")
+	game.Use(middleware.AuthMiddleware)
+	game.POST("/roll", handlers.RollDice)           // 주사위 던지기
+	game.GET("/daily-reward", handlers.DailyReward) // 일일보상
+}
+
+// 출석부
 func RegisterRouteAttend(e *echo.Echo) {
 
 }
 
+// 일일 퀘스트
 func RegisterRouteDailyQuest(e *echo.Echo) {
 
 }
 
+// 메세지함
 func RegisterRouteMessage(e *echo.Echo) {
 
 }
 
+// 인벤토리
 func RegisterRouteInventory(e *echo.Echo) {
 
 }
+
