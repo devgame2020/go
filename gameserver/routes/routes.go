@@ -43,8 +43,9 @@ func RegisterRouteUser(e *echo.Echo) {
 func RegisterRoutePlay(e *echo.Echo) {
 	game := e.Group("/game")
 	game.Use(middleware.AuthMiddleware)
-	game.POST("/roll", handlers.RollDice)           // 주사위 던지기
-	game.GET("/daily-reward", handlers.DailyReward) // 일일보상
+	game.POST("/roll", handlers.RollDice)             // 주사위 던지기
+	game.POST("/doubleroll", handlers.DoubleRollDice) // 주사위 던지기
+	game.GET("/daily-reward", handlers.DailyReward)   // 일일보상
 }
 
 // 출석부
