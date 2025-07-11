@@ -9,10 +9,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
-	"golang.org/x/crypto/bcrypt"
 
 	"gameserver/config"
 	"gameserver/models"
@@ -31,17 +29,25 @@ var ctx = context.Background()
 // token : token
 // msg : message
 // ret : true(성공), false(실패)
-func _CreateUser(Username string, Password string, Logintype int) (token string, ret error) {
+func _CreateUser(Username string, Password string, Logintype int) (token string, requestType int, ret error) {
+
+	rdb := config.GetRedisClient()
+	key := "user:" + Username
+	// 사용자 존재 여부 확인
+	exists, _ := rdb.Exists(ctx, key).Result()
+	if exists == 1 {
+		return "", http.StatusBadRequest, errors.New("user already exists")
+	}
+
 	// 비밀번호 해싱
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(Password), bcrypt.DefaultCost)
+	hashedPassword, err := utils.HashPassword([]byte(Password)) // bcrypt.GenerateFromPassword([]byte(Password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", errors.New("password hashing failed")
+		return "", http.StatusBadRequest, errors.New("password hashing failed")
 		// return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Password hashing failed"})
 	}
 
-	rdb := config.GetRedisClient()
 	// 고유 ID 생성 (예: UUID)
-	userID := uuid.New().String()
+	userID := utils.GenerateUUID() // uuid.New().String()
 
 	nickname := Username
 
@@ -59,10 +65,10 @@ func _CreateUser(Username string, Password string, Logintype int) (token string,
 		Coins:     1000,
 	}
 	userData, _ := json.Marshal(user)
-	key := "user:" + Username
+
 	err = rdb.HSet(ctx, key, "info", userData, "coin", 1000).Err()
 	if err != nil {
-		return "", errors.New("failed to save user")
+		return "", http.StatusBadRequest, errors.New("failed to save user")
 		// return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to save user"})
 	}
 
@@ -70,18 +76,18 @@ func _CreateUser(Username string, Password string, Logintype int) (token string,
 	// token, err := utils.GenerateToken(user.ID)
 	token, err = utils.GenerateToken(user.Username)
 	if err != nil {
-		return token, errors.New("failed to generate token")
+		return token, http.StatusBadRequest, errors.New("failed to generate token")
 		// return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to generate token"})
 	}
 
-	return token, nil
+	return token, http.StatusOK, nil
 	// return c.JSON(http.StatusOK, echo.Map{
 	// 	"message": "User created",
 	// 	"token":   token,
 	// })
 }
 
-func _LoginUser(Username string, Password string) (token string, ret error) {
+func _LoginUser(Username string, Password string) (token string, requestType int, ret error) {
 	rdb := config.GetRedisClient()
 	key := "user:" + Username
 	// Redis에서 사용자 정보 조회
@@ -90,16 +96,16 @@ func _LoginUser(Username string, Password string) (token string, ret error) {
 	fmt.Println(userData)
 
 	if err == redis.Nil {
-		return token, errors.New("user not found")
+		return token, http.StatusNotFound, errors.New("user not found")
 		// return c.JSON(http.StatusUnauthorized, echo.Map{"error": "User not found"})
 	} else if err != nil {
-		return token, errors.New("redis error")
+		return token, http.StatusInternalServerError, errors.New("redis error")
 		// return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Redis error"})
 	}
 
 	var user models.User
 	if err := json.Unmarshal([]byte(userData), &user); err != nil {
-		return token, errors.New("failed to parse user data")
+		return token, http.StatusBadRequest, errors.New("failed to parse user data")
 		//return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to parse user data"})
 	}
 
@@ -108,27 +114,27 @@ func _LoginUser(Username string, Password string) (token string, ret error) {
 
 	coin, err := rdb.HGet(ctx, key, "coin").Result()
 	if err == redis.Nil {
-		return token, errors.New("coin not found")
+		return token, http.StatusBadRequest, errors.New("coin not found")
 	} else if err != nil {
-		return token, errors.New("redis error")
+		return token, http.StatusBadRequest, errors.New("redis error")
 	}
 
 	user.Coins = utils.Atoi(coin)
 
 	// 비밀번호 검증
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(Password)); err != nil {
-		return token, errors.New("invalid password")
+	if err := utils.CompareHashAndPassword([]byte(user.Password), []byte(Password)); err != nil {
+		return token, http.StatusUnauthorized, errors.New("invalid password")
 		// return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid password"})
 	}
 
 	// JWT 토큰 생성
 	token, err = utils.GenerateToken(user.Username)
 	if err != nil {
-		return token, errors.New("failed to generate token")
+		return token, http.StatusBadRequest, errors.New("failed to generate token")
 		// return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to generate token"})
 	}
 
-	return token, nil
+	return token, http.StatusOK, nil
 }
 
 // 회원가입
@@ -156,10 +162,10 @@ func SignUp(c echo.Context) error {
 	}
 	// ======================================================================
 
-	token, err := _CreateUser(req.Username, req.Password, int(models.LoginTypeUser))
+	token, erroType, err := _CreateUser(req.Username, req.Password, int(models.LoginTypeUser))
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+		return c.JSON(erroType, echo.Map{"error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{
@@ -236,7 +242,7 @@ func GuestLogin(c echo.Context) error {
 	token := ""
 	password := req.Username[:10]
 
-	token, err := _LoginUser(req.Username, password)
+	token, _, err := _LoginUser(req.Username, password)
 	if err == nil {
 		return c.JSON(http.StatusOK, echo.Map{
 			"message": "Login successful",
@@ -245,9 +251,9 @@ func GuestLogin(c echo.Context) error {
 	}
 
 	//
-	token, err = _CreateUser(req.Username, password, int(models.LoginTypeGuest))
+	token, erroType, err := _CreateUser(req.Username, password, int(models.LoginTypeGuest))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+		return c.JSON(erroType, echo.Map{"error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{
@@ -273,10 +279,10 @@ func Login(c echo.Context) error {
 	}
 	// =======================================================================================
 
-	token, err := _LoginUser(req.Username, req.Password)
+	token, erroType, err := _LoginUser(req.Username, req.Password)
 
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, echo.Map{"error": err.Error()})
+		return c.JSON(erroType, echo.Map{"error": err.Error()})
 		// return c.JSON(http.StatusInternalServerError, echo.Map{"error": errorMsg})
 	}
 
@@ -327,3 +333,4 @@ func Login(c echo.Context) error {
 		})
 	*/
 }
+
