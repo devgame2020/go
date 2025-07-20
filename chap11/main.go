@@ -13,28 +13,18 @@ func main() {
 	list_11_10()
 	list_11_11()
 	list_11_12()
-	list_11_13()
-	list_11_14()
+
 	list_11_15()
 	list_11_16()
-	list_11_17()
-	list_11_18()
-	list_11_19()
+
 	list_11_20()
 	list_11_21()
 	list_11_22()
 	list_11_23()
-	list_11_24()
+
 	list_11_25()
 	list_11_26()
 	list_11_27()
-	list_11_28()
-	list_11_29()
-	list_11_30()
-	list_11_31()
-	list_11_32()
-	list_11_33()
-	list_11_34()
 
 }
 
@@ -305,6 +295,8 @@ func list_11_12() {
 	fmt.Println("======== list_11_12 ========")
 	fmt.Println("== getProducts12()는 []Product12 를 리턴하는 함수이다. ==")
 	fmt.Println("== Product12List() 는 타입변환하는 함수이다. ==")
+	fmt.Println("== Product12List()는 Product12List의 리시버함수이다. ==")
+
 	products := Product12List(getProducts12())
 	for category, total := range products.calcCategoryTotals12() {
 		fmt.Println("Category: ", category, "Total:", total)
@@ -332,176 +324,126 @@ func list_11_12() {
 
 // ===================================================================================
 
-func list_11_13() {
-	fmt.Println("======== list_11_13 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
-}
-
-// ===================================================================================
-
-func list_11_14() {
-	fmt.Println("======== list_11_14 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
-}
-
-// ===================================================================================
-
 func list_11_15() {
-	fmt.Println("======== list_11_15 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
+	fmt.Println("======== list_11_13 ~ list_11_15 ========")
+	fmt.Println("== methodsAndInterfaces15 폴더 참조 ==")
 }
 
 // ===================================================================================
 
 func list_11_16() {
-	fmt.Println("======== list_11_16 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
-}
-
-// ===================================================================================
-
-func list_11_17() {
-	fmt.Println("======== list_11_17 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
-}
-
-// ===================================================================================
-
-func list_11_18() {
-	fmt.Println("======== list_11_18 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
-}
-
-// ===================================================================================
-
-func list_11_19() {
-	fmt.Println("======== list_11_19 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
+	fmt.Println("======== list_11_16 ~ list_11_19 ========")
+	fmt.Println("== methodsAndInterfaces16 폴더 참조 ==")
+	fmt.Println("== methodsAndInterfaces15를 interface 를 사용하여 구현하였다. ==")
+	fmt.Println("== 서로 다른 struct이지만 interface를 사용하여 공통된 함수를 호출한다. ==")
 }
 
 // ===================================================================================
 
 func list_11_20() {
 	fmt.Println("======== list_11_20 ========")
+	fmt.Println("== methodsAndInterfaces20 폴더 참조 ==")
+	fmt.Println("== main.go파일에서 인터페이스 구현 예제 (p316) => (인터페이스 구현이 아니고 인터페이스 호출이라고 해야하지 않나?) ==")
 	fmt.Println("== ==")
 	fmt.Println("== ==")
 }
 
 // ===================================================================================
 
+type Expense interface {
+	getName() string
+	getCost(annual bool) float64
+}
+
+func calcTotal(expenses []Expense) (total float64) {
+	for _, item := range expenses {
+		total += item.getCost(true)
+	}
+	return
+}
+
+type Account struct {
+	accountNumber int
+	expenses      []Expense
+}
+
 func list_11_21() {
 	fmt.Println("======== list_11_21 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
+	fmt.Println("== 구조체 필드로 인터페이스를 사용하는 예제 ==")
+
+	account := Account{
+		accountNumber: 12345,
+		expenses: []Expense{
+			Product{"Kayak", "Watersports", 275},
+			Service{"Boat Cover", 12, 89.50},
+		},
+	}
+	for _, expense := range account.expenses {
+		fmt.Println("Expense:", expense.getName(), "Cost:", expense.getCost(true))
+	}
+	fmt.Println("Total:", calcTotal(account.expenses))
 }
 
 // ===================================================================================
 
 func list_11_22() {
 	fmt.Println("======== list_11_22 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
+	fmt.Println("== var expense Expense = product ==")
+	fmt.Println("== product 값을 expense에 복사한다. ==")
+	fmt.Println("== expense는 product의 복사본을 가지고 있다. ==")
+
+	product := Product{"Kayak", "Watersports", 275}
+	var expense Expense = product
+	product.price = 100
+	fmt.Println(product)
+	fmt.Println(expense)
+	fmt.Println("Product field value:", product.price)
+	fmt.Println("Expense method result:", expense.getCost(false))
 }
 
 // ===================================================================================
 
 func list_11_23() {
 	fmt.Println("======== list_11_23 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
-}
+	fmt.Println("== var expense Expense = &product 부분만 차이가 난다. ==")
+	fmt.Println("== &product : 구조체값에 대한 포인터가 사용되었다. ==")
 
-// ===================================================================================
+	product := Product{"Kayak", "Watersports", 275}
+	var expense Expense = &product
+	product.price = 100
+	fmt.Println(product)
+	fmt.Println(expense)
+	fmt.Println("Product field value:", product.price)
+	fmt.Println("Expense method result:", expense.getCost(false))
 
-func list_11_24() {
-	fmt.Println("======== list_11_24 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
 }
 
 // ===================================================================================
 
 func list_11_25() {
 	fmt.Println("======== list_11_25 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
+
 }
 
 // ===================================================================================
 
 func list_11_26() {
 	fmt.Println("======== list_11_26 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
+	fmt.Println("== e1 == e2 는 포인터비교라서 false 이다. ==")
+	fmt.Println("== e3 == e4 는 값비교라서 true이다. ==")
+
+	var e1 Expense = &Product{name: "Kayak"}
+	var e2 Expense = &Product{name: "Kayak"}
+	var e3 Expense = Service{description: "Boat Cover"}
+	var e4 Expense = Service{description: "Boat Cover"}
+	fmt.Println("e1 == e2", e1 == e2)
+	fmt.Println("e3 == e4", e3 == e4)
 }
 
 // ===================================================================================
 
 func list_11_27() {
 	fmt.Println("======== list_11_27 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
-}
-
-// ===================================================================================
-
-func list_11_28() {
-	fmt.Println("======== list_11_28 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
-}
-
-// ===================================================================================
-
-func list_11_29() {
-	fmt.Println("======== list_11_29 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
-}
-
-// ===================================================================================
-
-func list_11_30() {
-	fmt.Println("======== list_11_30 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
-}
-
-// ===================================================================================
-
-func list_11_31() {
-	fmt.Println("======== list_11_31 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
-}
-
-// ===================================================================================
-
-func list_11_32() {
-	fmt.Println("======== list_11_32 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
-}
-
-// ===================================================================================
-
-func list_11_33() {
-	fmt.Println("======== list_11_33 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
-}
-
-// ===================================================================================
-
-func list_11_34() {
-	fmt.Println("======== list_11_34 ========")
-	fmt.Println("== ==")
-	fmt.Println("== ==")
+	fmt.Println("== 구조체안에 슬라이스가 있을경우 비교문에서 오류가 발생한다. ==")
+	fmt.Println("== 슬라이스는 비교할수없다. ==")
 }
