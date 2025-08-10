@@ -23,6 +23,19 @@ type UserRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
+type GuestUserRequest struct {
+	Username string `json:"username" validate:"required"`
+}
+
+type LoginResponse struct {
+	Message string `json:"message"`
+	Token   string `json:"token"`
+}
+
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
 var ctx = context.Background()
 
 // return
@@ -123,7 +136,6 @@ func _LoginUser(Username string, Password string) (token string, requestType int
 
 	// 비밀번호 검증
 	if err := utils.CompareHashAndPassword([]byte(user.Password), []byte(Password)); err != nil {
-		fmt.Println("invalid password")
 		return token, http.StatusUnauthorized, errors.New("invalid password")
 		// return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid password"})
 	}
@@ -138,15 +150,21 @@ func _LoginUser(Username string, Password string) (token string, requestType int
 	return token, http.StatusOK, nil
 }
 
-// 회원가입
+// SignUp godoc
+// @Summary OK 회원가입
+// @Description 회원가입 API입니다
+// @Tags init
+// @Accept  json
+// @Produce  json
+// @Param userRequest body UserRequest true "SignUp Body"
+// @Success 200 {object} LoginResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /init/signup [post]
 func SignUp(c echo.Context) error {
 	fmt.Println("===SignUp====")
 
 	// ================= 입력값 검사 ======================================
-	var req struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
+	var req UserRequest
 
 	if err := c.Bind(&req); err != nil {
 		log.Println("Bind error:", err)
@@ -227,12 +245,20 @@ func SignUp(c echo.Context) error {
 	*/
 }
 
-// 로그인
-// testuser password123
+// guestLogin godoc
+// @Summary OK Guest로그인
+// @Description Guest로그인 API입니다
+// @Description 아이디를 입력하면 token을 반환합니다.
+// @Tags init
+// @Accept  json
+// @Produce  json
+// @Param userRequest body GuestUserRequest true "Login Body"
+// @Success 200 {object} LoginResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /init/guest-login [post]
 func GuestLogin(c echo.Context) error {
-	var req struct {
-		Username string `json:"username"`
-	}
+	var req GuestUserRequest
+
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid request"})
 	}
@@ -264,12 +290,19 @@ func GuestLogin(c echo.Context) error {
 	})
 }
 
-// 로그인
+// SignUp godoc
+// @Summary OK 로그인
+// @Description 로그인 API입니다
+// @Description 아이디,패스워드를 입력하면 token을 반환합니다.
+// @Tags init
+// @Accept  json
+// @Produce  json
+// @Param userRequest body UserRequest true "Login Body"
+// @Success 200 {object} LoginResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /init/login [post]
 func Login(c echo.Context) error {
-	var req struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
+	var req UserRequest
 
 	// =======================================================================================
 	if err := c.Bind(&req); err != nil {
@@ -284,7 +317,6 @@ func Login(c echo.Context) error {
 	token, erroType, err := _LoginUser(req.Username, req.Password)
 
 	if err != nil {
-		fmt.Println("Login Error:" + err.Error())
 		return c.JSON(erroType, echo.Map{"error": err.Error()})
 		// return c.JSON(http.StatusInternalServerError, echo.Map{"error": errorMsg})
 	}
@@ -293,46 +325,4 @@ func Login(c echo.Context) error {
 		"message": "Login successful",
 		"token":   token,
 	})
-
-	/*
-		rdb := config.GetRedisClient()
-		key := "user:" + req.Username
-		// Redis에서 사용자 정보 조회
-		userData, err := rdb.HGet(ctx, key, "info").Result()
-		fmt.Println("==========userData=======")
-		fmt.Println(userData)
-
-		if err == redis.Nil {
-			return c.JSON(http.StatusUnauthorized, echo.Map{"error": "User not found"})
-		} else if err != nil {
-			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Redis error"})
-		}
-
-		var user models.User
-		if err := json.Unmarshal([]byte(userData), &user); err != nil {
-			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to parse user data"})
-		}
-
-		fmt.Println("==========login=======")
-		fmt.Println(user)
-
-		coin, err := rdb.HGet(ctx, key, "coin").Result()
-		user.Coins = utils.Atoi(coin)
-
-		// 비밀번호 검증
-		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-			return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid password"})
-		}
-
-		// JWT 토큰 생성
-		token, err := utils.GenerateToken(user.Username)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to generate token"})
-		}
-
-		return c.JSON(http.StatusOK, echo.Map{
-			"message": "Login successful",
-			"token":   token,
-		})
-	*/
 }

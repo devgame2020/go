@@ -21,6 +21,7 @@ func RegisterRoutes(e *echo.Echo) {
 
 func RegisterRouteEtc(e *echo.Echo) {
 	e.GET("/chk", handlers.CheckHandler)
+	e.GET("/hchk", handlers.CheckHandler)
 }
 
 func RegisterRouteInit(e *echo.Echo) {
@@ -46,6 +47,7 @@ func RegisterRoutePlay(e *echo.Echo) {
 	game.POST("/roll", handlers.RollDice)             // 주사위 던지기
 	game.POST("/doubleroll", handlers.DoubleRollDice) // 주사위 던지기
 	game.GET("/daily-reward", handlers.DailyReward)   // 일일보상
+	game.POST("/roulette", handlers.Roulette)         // 룰렛돌리기
 }
 
 // 출석부
@@ -67,4 +69,3 @@ func RegisterRouteMessage(e *echo.Echo) {
 func RegisterRouteInventory(e *echo.Echo) {
 
 }
-
