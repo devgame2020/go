@@ -1,0 +1,178 @@
+basePath: /
+definitions:
+  handlers.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.GuestUserRequest:
+    properties:
+      username:
+        type: string
+    required:
+    - username
+    type: object
+  handlers.LoginResponse:
+    properties:
+      message:
+        type: string
+      token:
+        type: string
+    type: object
+  handlers.UserProfileResponse:
+    properties:
+      coins:
+        example: 1500
+        type: integer
+      last_login:
+        example: "2023-10-01"
+        type: string
+      user_id:
+        example: 123
+        type: integer
+      username:
+        example: john_doe
+        type: string
+    type: object
+  handlers.UserRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Golang에서 Swagger를 설정하는 예제입니다.
+  title: Go Swagger Example API
+  version: "1.0"
+paths:
+  /chk:
+    get:
+      consumes:
+      - application/json
+      description: check API입니다
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: OK 메시지 반환
+      tags:
+      - example
+  /init/guest-login:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Guest로그인 API입니다
+        아이디를 입력하면 token을 반환합니다.
+      parameters:
+      - description: Login Body
+        in: body
+        name: userRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.GuestUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: OK Guest로그인
+      tags:
+      - init
+  /init/login:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        로그인 API입니다
+        아이디,패스워드를 입력하면 token을 반환합니다.
+      parameters:
+      - description: Login Body
+        in: body
+        name: userRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: OK 로그인
+      tags:
+      - init
+  /init/signup:
+    post:
+      consumes:
+      - application/json
+      description: 회원가입 API입니다
+      parameters:
+      - description: SignUp Body
+        in: body
+        name: userRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: OK 회원가입
+      tags:
+      - init
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Bearer 토큰을 통해 유저 정보를 조회합니다.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UserProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 유저 프로필 조회
+      tags:
+      - User
+securityDefinitions:
+  BearerAuth:
+    description: 'Bearer 토큰 인증. 예: "Bearer {token}"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
