@@ -107,6 +107,7 @@ func DoubleRollDice(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, echo.Map{"error": "코인이 부족합니다"})
 	}
 
+	origCoin := user.Coins
 	user.Coins -= totalBet
 
 	// 주사위 굴림
@@ -195,6 +196,7 @@ func DoubleRollDice(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{
+		"orignal_coins": origCoin,
 		"dice_1":        d1,
 		"dice_2":        d2,
 		"sum":           sum,
@@ -243,4 +245,3 @@ func DailyReward(c echo.Context) error {
 		"coins":   user.Coins,
 	})
 }
-

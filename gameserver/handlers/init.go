@@ -123,6 +123,7 @@ func _LoginUser(Username string, Password string) (token string, requestType int
 
 	// 비밀번호 검증
 	if err := utils.CompareHashAndPassword([]byte(user.Password), []byte(Password)); err != nil {
+		fmt.Println("invalid password")
 		return token, http.StatusUnauthorized, errors.New("invalid password")
 		// return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid password"})
 	}
@@ -227,6 +228,7 @@ func SignUp(c echo.Context) error {
 }
 
 // 로그인
+// testuser password123
 func GuestLogin(c echo.Context) error {
 	var req struct {
 		Username string `json:"username"`
@@ -282,6 +284,7 @@ func Login(c echo.Context) error {
 	token, erroType, err := _LoginUser(req.Username, req.Password)
 
 	if err != nil {
+		fmt.Println("Login Error:" + err.Error())
 		return c.JSON(erroType, echo.Map{"error": err.Error()})
 		// return c.JSON(http.StatusInternalServerError, echo.Map{"error": errorMsg})
 	}
@@ -333,4 +336,3 @@ func Login(c echo.Context) error {
 		})
 	*/
 }
-

@@ -7,6 +7,5 @@ import (
 )
 
 func CheckHandler(c echo.Context) error {
-	return c.String(http.StatusOK, "OKOKOK")
+	return c.String(http.StatusOK, "OK")
 }
-

@@ -42,7 +42,7 @@ func GenerateToken(userName string) (string, error) {
 	claims := &Claims{
 		UserName: userName,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)), // 24시간 유효
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * 30 * time.Hour)), // 30일간 유효
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    "your-app-name",
 		},
