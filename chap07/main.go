@@ -8,7 +8,21 @@ import (
 )
 
 func main() {
-	fmt.Println("==== Chap 06 =======")
+	var products []string
+
+	fmt.Println(products)
+	fmt.Println("len and cap ", len(products), cap(products))
+	products = append(products, "a")
+	products = append(products, "b")
+	products = append(products, "c")
+	fmt.Println(products)
+	fmt.Println("len and cap ", len(products), cap(products))
+	// fmt.Println("len and cap ", len(someNames), cap(someNames))
+	// someNames = append(someNames, "Gloves")
+	// fmt.Println("len and cap ", len(someNames), cap(someNames))
+	// copy(someNames, allNames)
+	// fmt.Println("someNames:", someNames)
+	// fmt.Println("allNames", allNames)
 
 	list_7_4()
 	list_7_5()
@@ -57,6 +71,7 @@ func main() {
 	list_7_48()
 	list_7_49()
 	list_7_50()
+	list_7_rune()
 
 }
 
@@ -577,4 +592,11 @@ func list_7_50() {
 	for index, char := range []byte(price) {
 		fmt.Println(index, char)
 	}
+}
+
+func list_7_rune() {
+	fmt.Println("======== list_7_rune ========")
+	var ch rune = '한'
+	fmt.Println(ch)        // 출력: 54620 (유니코드 코드포인트)
+	fmt.Printf("%c\n", ch) // 출력: 한
 }
