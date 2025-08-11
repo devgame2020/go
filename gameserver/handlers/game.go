@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -69,18 +70,30 @@ func RollDice(c echo.Context) error {
 - 두수의합이홀수: 2배
 */
 func DoubleRollDice(c echo.Context) error {
+
+	fmt.Println("===DoubleRollDice start===")
+	fmt.Println("Content-Type:", c.Request().Header.Get("Content-Type"))
+	//bodyBytes, _ := io.ReadAll(c.Request().Body)
+	//fmt.Println("Raw Body:", string(bodyBytes))
+
 	// =============== 공통코드 =================================================================
 	// 사용자 ID 가져오기 (AuthMiddleware에서 context에 저장됨)
 	username, err := utils.GetUserIDFromToken(c)
 	if err != nil {
+		fmt.Println("===error 0====")
 		fmt.Println(err)
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "인증 실패"})
 	}
 
+	fmt.Println("===step1====")
+
 	user, err := models.GetUser(username)
 	if err != nil {
+		fmt.Println("===error 1====")
 		return c.JSON(http.StatusNotFound, echo.Map{"error": "사용자 정보 없음"})
 	}
+
+	fmt.Println("===step2====")
 
 	coins := user.Coins
 	// if coins < 30 {
@@ -93,9 +106,16 @@ func DoubleRollDice(c echo.Context) error {
 	var req struct {
 		Bets map[string]int `json:"bets"`
 	}
+
+	fmt.Println("===step3====")
+	fmt.Printf("%+v\n", req)
+
 	if err := c.Bind(&req); err != nil {
+		fmt.Println("====== bind error ============")
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid request"})
 	}
+
+	fmt.Println("===> DoubleRollDice:", req.Bets)
 
 	// 총 배팅금 계산
 	totalBet := 0
@@ -123,6 +143,9 @@ func DoubleRollDice(c echo.Context) error {
 	// 조건 평가
 	reward := 0
 	for condition, amount := range req.Bets {
+
+		fmt.Println("==Bets== : " + condition + " : " + strconv.Itoa(amount))
+
 		switch condition {
 		case "double": // 같은 숫자 : 5배
 			if d1 == d2 {
@@ -195,6 +218,8 @@ func DoubleRollDice(c echo.Context) error {
 		}
 	}
 
+	fmt.Println("=== reward start===")
+
 	// 보상 추가
 	user.Coins += reward
 
@@ -208,10 +233,25 @@ func DoubleRollDice(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "코인 업데이트 실패"})
 	}
 
+	fmt.Println("== db save ok ===")
+
 	jsonbytes, err := json.Marshal(mapdice)
 	if err != nil {
 		fmt.Println("JSON 변환 실패:", err)
 	}
+
+	fmt.Println("bets:" + string(jsonbytes))
+
+	fmt.Println(echo.Map{
+		"dice_1":        d1,
+		"dice_2":        d2,
+		"sum":           sum,
+		"reward":        reward,
+		"current_coins": user.Coins,
+		"bets":          string(jsonbytes),
+		//"bets":          req.Bets,
+	})
+	fmt.Println("========= end ============")
 
 	return c.JSON(http.StatusOK, echo.Map{
 		"dice_1":        d1,
@@ -287,9 +327,11 @@ func Roulette(c echo.Context) error {
 	}
 	// ===========================================================================================
 
-	rewards := []int{10, 40, 90, 160, 250, 360}
-	weights := []int{50, 30, 10, 6, 3, 1} // 총합 = 100 → 문제 없고, 500이어도 OK
-	reward := _roulette(rewards, weights) // 룰렛 돌리기
+	// rewards := []int{10, 40, 90, 160, 250, 360}
+	// weights := []int{50, 30, 10, 6, 3, 1} // 총합 = 100 → 문제 없고, 500이어도 OK
+	rewards := []int{10, 1000, 40, 500, 90, 160, 250, 360}
+	weights := []int{50, 1, 30, 1, 10, 4, 2, 2} // 총합: 100
+	reward, idx := _roulette(rewards, weights)  // 룰렛 돌리기
 	fmt.Println("룰렛 보상:", reward)
 
 	user.Coins += reward - bet // 배팅 비용 차감 후 보상 추가
@@ -304,6 +346,7 @@ func Roulette(c echo.Context) error {
 		return c.JSON(http.StatusOK, echo.Map{
 			"message": "룰렛 돌리기 성공",
 			"reward":  reward,
+			"idx":     idx,
 			"coins":   user.Coins,
 		})
 	}
@@ -314,9 +357,9 @@ func Roulette(c echo.Context) error {
 // 룰렛 돌리기 함수
 // rewards: 보상 목록, weights: 각 보상의 가중치
 // 외부에서 확률표를 제공받아야 함
-func _roulette(rewards []int, weights []int) int {
+func _roulette(rewards []int, weights []int) (int, int) {
 	if len(rewards) != len(weights) || len(rewards) == 0 {
-		return 0 // 잘못된 입력 처리
+		return 0, 0 // 잘못된 입력 처리
 	}
 
 	// 전체 가중치 합 계산
@@ -337,8 +380,8 @@ func _roulette(rewards []int, weights []int) int {
 		sum += w
 		if r <= sum {
 			fmt.Println("룰렛 보상 선택:", rewards[i], "확률:", w)
-			return rewards[i]
+			return rewards[i], i
 		}
 	}
-	return 0 // 이론적으로 도달하지 않음
+	return 0, 0 // 이론적으로 도달하지 않음
 }

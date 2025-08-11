@@ -2,6 +2,7 @@ package utils
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -29,3 +30,8 @@ func GenerateUUID() string {
 	return uuid.New().String()
 }
 
+// 문자열의 공백 제거
+func SanitizeUsername(s string) string {
+	s = strings.ReplaceAll(s, "\u200B", "") // ZWSP 제거
+	return strings.TrimSpace(s)             // 앞뒤 공백 제거
+}

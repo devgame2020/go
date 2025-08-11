@@ -79,7 +79,7 @@ func GetUser(username string) (*User, error) {
 		return nil, errors.New("Unmarshal error")
 	}
 
-	coin, err := rdb.HGet(ctx, "user:"+username, "coin").Result()
+	coin, err := rdb.HGet(ctx, "user:"+username, "coins").Result()
 	user.Coins = utils.Atoi(coin)
 
 	fmt.Println("=========user=========")

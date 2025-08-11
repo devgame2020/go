@@ -43,6 +43,13 @@ var ctx = context.Background()
 // msg : message
 // ret : true(성공), false(실패)
 func _CreateUser(Username string, Password string, Logintype int) (token string, requestType int, ret error) {
+	Username = utils.SanitizeUsername(Username)
+	Password = utils.SanitizeUsername(Password)
+
+	fmt.Printf("[%q]\n", Username) // 숨은 문자까지 보이게 출력
+	fmt.Println(len(Username))     // 길이 확인
+	fmt.Printf("[%q]\n", Password) // 숨은 문자까지 보이게 출력
+	fmt.Println(len(Password))     // 길이 확인
 
 	rdb := config.GetRedisClient()
 	key := "user:" + Username
@@ -79,7 +86,7 @@ func _CreateUser(Username string, Password string, Logintype int) (token string,
 	}
 	userData, _ := json.Marshal(user)
 
-	err = rdb.HSet(ctx, key, "info", userData, "coin", 1000).Err()
+	err = rdb.HSet(ctx, key, "info", userData, "coins", 1000).Err()
 	if err != nil {
 		return "", http.StatusBadRequest, errors.New("failed to save user")
 		// return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to save user"})
@@ -101,8 +108,15 @@ func _CreateUser(Username string, Password string, Logintype int) (token string,
 }
 
 func _LoginUser(Username string, Password string) (token string, requestType int, ret error) {
+	Username = utils.SanitizeUsername(Username)
+	Password = utils.SanitizeUsername(Password)
 	rdb := config.GetRedisClient()
 	key := "user:" + Username
+	fmt.Println("loginuser:[" + Username + "]" + "key:[" + key + "]")
+	fmt.Printf("[%q]\n", Username) // 숨은 문자까지 보이게 출력
+	fmt.Println(len(Username))     // 길이 확인
+	fmt.Printf("[%q]\n", Password) // 숨은 문자까지 보이게 출력
+	fmt.Println(len(Password))     // 길이 확인
 	// Redis에서 사용자 정보 조회
 	userData, err := rdb.HGet(ctx, key, "info").Result()
 	fmt.Println("==========userData=======")
@@ -125,7 +139,7 @@ func _LoginUser(Username string, Password string) (token string, requestType int
 	fmt.Println("==========login=======")
 	fmt.Println(user)
 
-	coin, err := rdb.HGet(ctx, key, "coin").Result()
+	coin, err := rdb.HGet(ctx, key, "coins").Result()
 	if err == redis.Nil {
 		return token, http.StatusBadRequest, errors.New("coin not found")
 	} else if err != nil {
