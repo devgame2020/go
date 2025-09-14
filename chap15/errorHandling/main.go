@@ -4,15 +4,13 @@ import "fmt"
 
 func main() {
 	categories := []string{"Watersports", "Chess", "Running"}
-
-	for _, cat := range categories {
-		// Category가 Watersports, Chess 인 항목에 대한 합을 구한다.
-		total, err := Products.TotalPrice(cat)
-
-		if err == nil {
-			fmt.Println(cat, "Total:", ToCurrency(total))
+	channel := make(chan ChannelMessage, 10)
+	go Products.TotalPriceAsync(categories, channel)
+	for message := range channel {
+		if message.CategoryError == nil {
+			fmt.Println(message.Category, "Total:", ToCurrency(message.Total))
 		} else {
-			fmt.Println(cat, "(no such category)")
+			fmt.Println(message.Category, "(no such category)")
 		}
 	}
 }

@@ -8,20 +8,35 @@ func (e *CategoryError) Error() string {
 	return "Category " + e.requestedCategory + " does not exist"
 }
 
+type ChannelMessage struct {
+	Category string
+	Total    float64
+	*CategoryError
+}
+
 func (slice ProductSlice) TotalPrice(category string) (total float64,
 	err *CategoryError) {
 	productCount := 0
 	for _, p := range slice {
-		// Products에서 category가 같은 항목을 찾아서 total에 더한다.
 		if p.Category == category {
 			total += p.Price
 			productCount++
 		}
 	}
-
-	// productCount가 0이라면 해당 category가 같은 항목이 한개도 없기때문에 err를 할당한다.
 	if productCount == 0 {
 		err = &CategoryError{requestedCategory: category}
 	}
 	return
+}
+func (slice ProductSlice) TotalPriceAsync(categories []string,
+	channel chan<- ChannelMessage) {
+	for _, c := range categories {
+		total, err := slice.TotalPrice(c)
+		channel <- ChannelMessage{
+			Category:      c,
+			Total:         total,
+			CategoryError: err,
+		}
+	}
+	// close(channel)
 }
