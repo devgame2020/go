@@ -10,7 +10,8 @@ func main() {
 		if message.CategoryError == nil {
 			fmt.Println(message.Category, "Total:", ToCurrency(message.Total))
 		} else {
-			fmt.Println(message.Category, "(no such category)")
+			panic(message.CategoryError)
+			//fmt.Println(message.Category, "(no such category)")
 		}
 	}
 }
